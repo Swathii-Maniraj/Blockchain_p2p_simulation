@@ -15,20 +15,6 @@ The goal of this simulation is to demonstrate how a decentralized blockchain net
 - Longest chain consensus to resolve conflicts across nodes
 - Web interface to visualize the blockchain and interact with the network
 
-
-## Project Structure
-
-project/
-│
-├── blockchain.py         # Blockchain logic and data structure
-├── node.py               # Flask-based web server and REST API
-├── requirements.txt      # Python dependencies
-├── templates/
-│   └── index.html        # Frontend interface for blockchain explorer
-└── static/
-    └── style.css         # Styling for the frontend UI
-
-
 ## Running the Simulation
 
 Open separate terminals to run multiple nodes on different ports:

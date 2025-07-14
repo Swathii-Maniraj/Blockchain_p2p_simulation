@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mini Blockchain Explorer</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <h1>🧱 Mini Blockchain Explorer</h1>
+
+  <section>
+    <h2>Connected Peers</h2>
+    <input id="peerInput" placeholder="http://localhost:5001" />
+    <button onclick="registerPeer()">Register</button>
+    <ul id="peerList"></ul>
+  </section>
+
+  <section>
+    <h2>Blockchain</h2>
+    <div id="chain" class="block-container"></div>
+  </section>
+
+  <section>
+    <h2>New Transaction</h2>
+    <input id="sender" placeholder="Sender">
+    <input id="recipient" placeholder="Recipient">
+    <input id="amount" type="number" placeholder="Amount">
+    <button onclick="addTransaction()">Add Transaction</button>
+  </section>
+
+  <section>
+    <h2>Actions</h2>
+    <button onclick="mine()">⛏️ Mine Block</button>
+    <button onclick="resolve()">🔁 Resolve Chain</button>
+  </section>
+
+  <script>
+    async function loadPeers() {
+      const res = await fetch('/peers');
+      const data = await res.json();
+      const list = document.getElementById('peerList');
+      list.innerHTML = data.peers.map(p => `<li>${p}</li>`).join('');
+    }
+
+    async function loadChain() {
+      const res = await fetch('/chain');
+      const data = await res.json();
+      const container = document.getElementById('chain');
+
+      container.innerHTML = data.chain.map(block => {
+        const transactions = block.transactions.length
+          ? block.transactions.map(txn => `
+              <li>
+                <strong>From:</strong> ${txn.sender} <br>
+                <strong>To:</strong> ${txn.recipient} <br>
+                <strong>Amount:</strong> ${txn.amount}
+              </li>
+            `).join('')
+          : `<li>No transactions</li>`;
+
+        return `
+          <div class="block">
+            <p><strong class="block-title">Block ${block.index}</strong></p>
+            <p><strong>Proof (nonce):</strong> ${block.proof}</p>
+            <p><strong>Previous Hash:</strong> <span class="scrollable-text">${block.previous_hash}</span></p>
+            <p><strong>Current Hash:</strong> <span class="scrollable-text">${block.current_hash}</span></p>
+            <p><strong>Transactions:</strong></p>
+            <ul class="txn-list">${transactions}</ul>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function registerPeer() {
+      const input = document.getElementById('peerInput').value;
+      await fetch('/nodes/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nodes: [input] })
+      });
+      await loadPeers();
+    }
+
+    async function addTransaction() {
+      const sender = document.getElementById('sender').value;
+      const recipient = document.getElementById('recipient').value;
+      const amount = parseInt(document.getElementById('amount').value);
+      await fetch('/transactions/new', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sender, recipient, amount })
+      });
+      alert('Transaction added!');
+    }
+
+    async function mine() {
+      await fetch('/mine');
+      await loadChain();
+      alert('Block mined!');
+    }
+
+    async function resolve() {
+      await fetch('/nodes/resolve');
+      await loadChain();
+      alert('Chain resolved!');
+    }
+
+    loadPeers();
+    loadChain();
+  </script>
+</body>
+</html>
+
+
+
+
+
+
